@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rooh Helpdesk – Employee Support & Ticket Management</title>
+  <meta name="description" content="Employee Helpdesk & Ticket Management System built with HTML, CSS and JavaScript." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <div>
+          <strong>Rooh Helpdesk</strong>
+          <small>Employee Support Portal</small>
+        </div>
+      </div>
+
+      <div class="role-toggle" role="tablist" aria-label="Switch workspace">
+        <button class="role-btn" data-role="employee" role="tab">👤 Employee</button>
+        <button class="role-btn" data-role="admin" role="tab">🛠️ Admin</button>
+      </div>
+
+      <nav class="nav" id="navEmployee">
+        <p class="nav-label">Employee</p>
+        <a href="#" class="nav-link" data-page="emp-dashboard"><span class="ico">🏠</span>My Dashboard</a>
+        <a href="#" class="nav-link" data-page="emp-new"><span class="ico">➕</span>Raise a Ticket</a>
+        <a href="#" class="nav-link" data-page="emp-tickets"><span class="ico">🎫</span>My Tickets <span class="nav-count" id="navMyCount"></span></a>
+      </nav>
+
+      <nav class="nav" id="navAdmin">
+        <p class="nav-label">Support Desk</p>
+        <a href="#" class="nav-link" data-page="admin-overview"><span class="ico">📊</span>Overview</a>
+        <a href="#" class="nav-link" data-page="admin-tickets"><span class="ico">🗂️</span>All Tickets <span class="nav-count" id="navPendingCount"></span></a>
+        <a href="#" class="nav-link" data-page="admin-team"><span class="ico">👥</span>Team &amp; Employees</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="resetBtn" class="btn btn-ghost btn-block" title="Restore the original sample data">↺ Reset demo data</button>
+        <p class="tiny">Data is stored in your browser (localStorage)</p>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="backdrop"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+        <div class="page-heading">
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle"></p>
+        </div>
+        <div class="topbar-right">
+          <div class="identity" id="identity">
+            <div class="avatar" id="identityAvatar">--</div>
+            <div class="identity-text">
+              <small id="identityLabel">Signed in as</small>
+              <select id="employeeSelect" aria-label="Choose employee"></select>
+              <strong id="adminName" class="hidden">Support Admin</strong>
+            </div>
+          </div>
+          <div class="bell-wrap">
+            <button class="icon-btn" id="bellBtn" aria-label="Notifications">🔔<span class="bell-count hidden" id="bellCount">0</span></button>
+            <div class="notif-panel hidden" id="notifPanel">
+              <div class="notif-head">
+                <strong>Notifications</strong>
+                <button class="link-btn" id="markReadBtn">Mark all read</button>
+              </div>
+              <ul id="notifList" class="notif-list"></ul>
+            </div>
+          </div>
+          <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode" title="Toggle dark / light mode">🌙</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- ---------- EMPLOYEE: DASHBOARD ---------- -->
+        <section class="page" id="page-emp-dashboard">
+          <div class="hero">
+            <div>
+              <h2>Welcome back, <span id="empWelcome">there</span> 👋</h2>
+              <p id="empInfo"></p>
+            </div>
+            <button class="btn btn-primary" data-goto="emp-new">➕ Raise a new ticket</button>
+          </div>
+          <div class="stat-grid" id="empStats"></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>Recent tickets</h3><button class="link-btn" data-goto="emp-tickets">View all →</button></div>
+              <div id="empRecent" class="ticket-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Latest updates</h3></div>
+              <ul id="empUpdates" class="update-list"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- EMPLOYEE: NEW TICKET ---------- -->
+        <section class="page" id="page-emp-new">
+          <div class="grid-form">
+            <form id="ticketForm" class="card" novalidate>
+              <h3>Describe your issue</h3>
+              <p class="muted">Our smart assistant suggests a priority and the right support team as you type.</p>
+              <div class="field">
+                <label for="tTitle">Title <span class="req">*</span></label>
+                <input id="tTitle" maxlength="100" placeholder="e.g. VPN disconnects every few minutes" />
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="tCategory">Category <span class="req">*</span></label>
+                  <select id="tCategory"></select>
+                </div>
+                <div class="field">
+                  <label for="tPriority">Priority <span class="auto-tag" id="priorityAuto">auto-suggested</span></label>
+                  <select id="tPriority"></select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="tDescription">Description <span class="req">*</span></label>
+                <textarea id="tDescription" rows="6" maxlength="1000" placeholder="What happened? When did it start? Who is affected? Include any error messages."></textarea>
+                <small class="muted"><span id="descCount">0</span>/1000 characters</small>
+              </div>
+              <p class="form-error" id="formError" role="alert"></p>
+              <div class="form-actions">
+                <button type="button" class="btn btn-ghost" id="clearForm">Clear</button>
+                <button type="submit" class="btn btn-primary">Submit ticket</button>
+              </div>
+            </form>
+
+            <aside class="card smart-card">
+              <h3>✨ Smart assistant</h3>
+              <div class="smart-block">
+                <span class="smart-label">Suggested priority</span>
+                <div id="smartPriority" class="smart-value"></div>
+              </div>
+              <div class="smart-block" id="smartCategoryBlock">
+                <span class="smart-label">Category hint</span>
+                <div id="smartCategory" class="smart-value"></div>
+              </div>
+              <div class="smart-block">
+                <span class="smart-label">Routed to department</span>
+                <div id="smartDept" class="smart-value"></div>
+              </div>
+              <div class="smart-block">
+                <span class="smart-label">Service level target</span>
+                <div id="smartSla" class="smart-value"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ---------- EMPLOYEE: MY TICKETS ---------- -->
+        <section class="page" id="page-emp-tickets">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="search" id="empSearch" placeholder="🔍 Search by ID, title or description…" />
+              <select id="empCat" aria-label="Filter by category"></select>
+              <select id="empPri" aria-label="Filter by priority"></select>
+              <select id="empStatus" aria-label="Filter by status"></select>
+              <button class="btn btn-ghost btn-sm" id="empClear">Clear filters</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Ticket</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned to</th><th>Created</th><th>SLA</th></tr></thead>
+                <tbody id="empTable"></tbody>
+              </table>
+              <p class="empty hidden" id="empEmpty">No tickets match your filters.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- ADMIN: OVERVIEW ---------- -->
+        <section class="page" id="page-admin-overview">
+          <div class="stat-grid" id="adminStats"></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>Tickets by category</h3><small class="muted">Click a segment to filter</small></div>
+              <div id="catChart"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Tickets by status</h3><small class="muted">Click a bar to filter</small></div>
+              <div id="statusChart" class="bar-chart"></div>
+              <div class="card-head mt"><h3>Open tickets by priority</h3></div>
+              <div id="priorityChart" class="bar-chart"></div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>⚠️ Needs attention</h3><button class="link-btn" id="viewOverdue">View overdue →</button></div>
+              <div id="attentionList" class="ticket-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Agent workload (active tickets)</h3></div>
+              <div id="workloadChart" class="bar-chart"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- ADMIN: ALL TICKETS ---------- -->
+        <section class="page" id="page-admin-tickets">
+          <div class="card">
+            <div class="filter-bar">
+              <input type="search" id="adSearch" placeholder="🔍 Search ID, title, employee, agent…" />
+              <select id="adCat" aria-label="Filter by category"></select>
+              <select id="adPri" aria-label="Filter by priority"></select>
+              <select id="adStatus" aria-label="Filter by status"></select>
+              <select id="adAssignee" aria-label="Filter by assignee"></select>
+              <label class="check"><input type="checkbox" id="adOverdue" /> Overdue only</label>
+              <button class="btn btn-ghost btn-sm" id="adClear">Clear filters</button>
+            </div>
+            <p class="muted small" id="adResultInfo"></p>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Ticket</th><th>Employee</th><th>Category</th><th>Priority</th><th>Status</th><th>Assignee</th><th>SLA</th><th></th></tr></thead>
+                <tbody id="adTable"></tbody>
+              </table>
+              <p class="empty hidden" id="adEmpty">No tickets match your filters.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- ADMIN: TEAM ---------- -->
+        <section class="page" id="page-admin-team">
+          <h3 class="section-title">Support team</h3>
+          <div class="team-grid" id="teamGrid"></div>
+          <div class="card">
+            <div class="card-head"><h3>Employee directory</h3></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Employee</th><th>Department</th><th>Location</th><th>Total tickets</th><th>Active</th></tr></thead>
+                <tbody id="employeeTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= TICKET MODAL ================= -->
+  <div class="modal hidden" id="ticketModal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-box">
+      <header class="modal-head">
+        <div>
+          <span class="muted small" id="mId"></span>
+          <h2 id="mTitle"></h2>
+          <div id="mBadges" class="badge-row"></div>
+        </div>
+        <button class="icon-btn" id="modalClose" aria-label="Close">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="modal-main">
+          <h4>Description</h4>
+          <p id="mDescription" class="description"></p>
+          <div id="mResolution"></div>
+          <h4>Ticket history</h4>
+          <ol id="mTimeline" class="timeline"></ol>
+        </div>
+        <div class="modal-side">
+          <dl id="mMeta" class="meta"></dl>
+          <div id="mActions" class="modal-actions"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/smart.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
